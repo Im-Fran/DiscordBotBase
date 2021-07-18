@@ -61,14 +61,5 @@ public abstract class DiscordBotBase {
 
     // Create abstract method that holds the bot version
     public abstract String getVersion();
-
-    public static void main(String[] args) {
-        new DiscordBotBase(){
-            @Override
-            public String getVersion() {
-                return "1.0-SNAPSHOT";
-            }
-        }.init();
-    }
     
 }
