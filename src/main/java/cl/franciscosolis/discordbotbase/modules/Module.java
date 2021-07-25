@@ -14,7 +14,6 @@ public class Module {
 
     public Module(String identifier){
         this.identifier = identifier;
-        this.enable();
     }
 
     public void enable(){
