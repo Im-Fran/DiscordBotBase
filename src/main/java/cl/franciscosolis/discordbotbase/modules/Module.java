@@ -26,6 +26,7 @@ public class Module {
         }else{
             this.onEnable();
             this.enabled = true;
+            bot.jda.addEventListener(this);
             System.out.println("Module " + identifier + " enabled");
         }
     }

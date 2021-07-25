@@ -44,6 +44,7 @@ public abstract class Command {
         }else{
             this.onEnable();
             this.enabled = true;
+            bot.jda.addEventListener(this);
             System.out.println("Command " + identifier + " enabled");
         }
     }

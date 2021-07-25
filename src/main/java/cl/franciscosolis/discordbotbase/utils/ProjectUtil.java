@@ -1,46 +1,61 @@
 package cl.franciscosolis.discordbotbase.utils;
 
 import java.io.IOException;
+import java.net.URL;
 import java.security.CodeSource;
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class ProjectUtil {
 
-    private static LinkedList<String> getAllClasses() throws IOException {
-        // Create linkedlist string object of files
-        LinkedList<String> files = new LinkedList<>();
-        // Store in the variable 'src' the code source using the class protection domain method
-        CodeSource src = ProjectUtil.class.getProtectionDomain().getCodeSource();
-        // Retrieve the zip input stream from the source code
-        ZipInputStream zipInputStream = new ZipInputStream(src.getLocation().openStream());
-        // while true loop get the next file from the zip input stream and store in files the name
-        ZipEntry zipEntry = null;
-        while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-            String file = zipEntry.getName();
-            if (file == null) continue;
-            files.add(file);
+    public static String[] getFiles() {
+        ArrayList<String> names = new ArrayList<>();
+        try {
+            CodeSource src = ProjectUtil.class.getProtectionDomain().getCodeSource();
+            if (src != null) {
+                URL jar = src.getLocation();
+                ZipInputStream zip = new ZipInputStream(jar.openStream());
+                while(true) {
+                    ZipEntry e = zip.getNextEntry();
+                    if (e == null) break;
+                    names.add(e.getName());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
-        return files;
+        return names.toArray(new String[0]);
     }
 
-    // Get all the classes and filter them using a prefix as argument and map the filtered result into a Class object
-    public static LinkedList<Class<?>> getClasses(String prefix) throws IOException{
-        LinkedList<Class<?>> classes = new LinkedList<>();
-        for (String clazz : getAllClasses()) {
-            // Replace '/' by '.' in clazz
-            String clazzName = clazz.replace('/', '.');
-            // Check if the clazzName starts with the prefix and ends with .class
-            if (clazzName.startsWith(prefix) && clazzName.endsWith(".class")) {
-                // Remove the .class from the clazzName and try to convert to a class and catch the class not found exception and ignore it
-                try {
-                    classes.add(Class.forName(clazzName.substring(0, clazzName.length() - 6)));
-                }catch (ClassNotFoundException ignored) {}
-            }
-        }
-        return classes;
+    public static Class<?>[] getClasses(String prefix) {
+        return Arrays.stream(getFiles())
+                .filter(fileName -> fileName.endsWith(".class"))
+                .map(className -> className.replace("/", ".").replace(".class", ""))
+                .filter(fileName -> fileName.startsWith(prefix))
+                .map(className -> {
+                    try {
+                        return Class.forName(className);
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                })
+                .filter(c-> c != null)
+                .toArray(Class[]::new);
+    }
+
+    public static String removeFront(String s, int am) {
+        return s.substring(am);
+    }
+
+    public static String removeEnd(String s, int am) {
+        return s.substring(0, s.length() - am);
+    }
+
+    public static String removeBoth(String s, int am) {
+        return s.substring(am, s.length() - am);
     }
 
 
