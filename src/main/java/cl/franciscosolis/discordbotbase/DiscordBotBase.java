@@ -21,29 +21,6 @@ import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
 public abstract class DiscordBotBase {
 
-    public static void main(String[] args) {
-        new DiscordBotBase(){
-            public String getVersion() {
-                return "1.0.0-SNAPSHOT";
-            };
-
-            @Override
-            public Activity getActivity() {
-                return Activity.playing("With tests");
-            }
-
-            @Override
-            public GatewayIntent[] getEnabledGatewayIntents() {
-                return GatewayIntent.values();
-            }
-
-            @Override
-            public CacheFlag[] getEnabledCacheFlags() {
-                return CacheFlag.values();
-            }
-        }.init();
-    }
-
     public static DiscordBotBase i;
     public static String apiVersion = "4.0.0-SNAPSHOT";
     public static Config config = new Config(new File("Config.yml"));
