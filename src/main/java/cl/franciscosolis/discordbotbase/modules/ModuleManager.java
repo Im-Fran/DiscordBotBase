@@ -2,20 +2,16 @@ package cl.franciscosolis.discordbotbase.modules;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 
 import cl.franciscosolis.discordbotbase.DiscordBotBase;
-import cl.franciscosolis.discordbotbase.objects.Cooldown;
-import cl.franciscosolis.discordbotbase.objects.query.Query;
-import cl.franciscosolis.discordbotbase.utils.CustomEmbedBuilder;
 import cl.franciscosolis.discordbotbase.utils.ProjectUtil;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.SlashCommandEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -46,7 +42,7 @@ public class ModuleManager {
 
         DiscordBotBase.config.add("CommandPrefix", "!");
         bot.jda.updateCommands().queue();
-        CommandListUpdateAction commands = bot.mainGuild.updateCommands();
+        List<CommandData> cmdDataToAdd = new ArrayList<>();
         for(String prefix : bot.packages){
             for(Class<?> clazz : ProjectUtil.getClasses(prefix)){
                 // Check if clazz is assignable from Module and is not abstract
@@ -75,7 +71,7 @@ public class ModuleManager {
                         CommandData cmdData = new CommandData(cmd.command(), (cmd.description() != null ? cmd.description() : "No description provided."))
                             .addOptions(cmd.getOptions())
                             .setDefaultEnabled(cmd.getCommandPrivileges().length == 0);
-                        commands.addCommands(cmdData);
+                        cmdDataToAdd.add(cmdData);
                     } catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException | NoSuchMethodException | SecurityException e) {
                         e.printStackTrace();
                     }
@@ -83,14 +79,18 @@ public class ModuleManager {
             }
         }
 
-        commands.queue(cmds -> {
-            cmds.forEach(cmd -> {
-                CommandPrivilege[] commandPrivileges = this.slashCommands.stream().filter(c -> c.command().equals(cmd.getName())).map(SlashCommand::getCommandPrivileges).findFirst().orElse(new CommandPrivilege[0]);
-                if(commandPrivileges.length > 0){
-                    bot.mainGuild.updateCommandPrivilegesById(cmd.getId(), commandPrivileges).queue();
-                }
+        for(Guild guild : bot.jda.getGuilds()){
+            CommandListUpdateAction commands = guild.updateCommands();
+            cmdDataToAdd.forEach(commands::addCommands);
+            commands.queue(cmds -> {
+                cmds.forEach(cmd -> {
+                    CommandPrivilege[] commandPrivileges = this.slashCommands.stream().filter(c -> c.command().equals(cmd.getName())).map(SlashCommand::getCommandPrivileges).findFirst().orElse(new CommandPrivilege[0]);
+                    if(commandPrivileges.length > 0){
+                        guild.updateCommandPrivilegesById(cmd.getId(), commandPrivileges).queue();
+                    }
+                });
             });
-        });
+        }
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> this.modules.forEach(Module::onDisable)));
         Runtime.getRuntime().addShutdownHook(new Thread(() -> this.commands.forEach(Command::onDisable)));
@@ -113,8 +113,10 @@ public class ModuleManager {
             cmd.cooldowns.remove(e.getMember().getId());
         }
         if(cmd.deferReply) e.deferReply(cmd.onlyVisibleToUser).queue();
-        long time = System.currentTimeMillis() - start;
-        cmd.onCommand(e.getTextChannel(), e.getMember(), e, time);
+        if((System.currentTimeMillis() - start) >= 500){
+            System.out.println("WARNING: RESPONSE TIME FOR SLASG COMMAND '" + cmd.command() + "' IS HIGHER THAN 500ms!");)
+        }
+        cmd.onCommand(e.getTextChannel(), e.getMember(), e, start);
     }
 
     @SubscribeEvent
@@ -139,6 +141,10 @@ public class ModuleManager {
             }
             Command command = this.commands.get(this.cmd_cache.getOrDefault(cmd, -1));
             if(command != null){
+                if(command.sendTyping){
+                    message.getTextChannel().sendTyping().queue();
+                }
+
                 if(command.deleteOnExecution){
                     message.delete().submit();
                 }
@@ -175,8 +181,10 @@ public class ModuleManager {
                 command.cooldowns.remove(member.getId());
 
                 String[] args = data.length == 0 ? new String[0] : Arrays.copyOfRange(data, 1, data.length);
-                long time = System.currentTimeMillis() - start;
-                command.onExecute(e, message.getTextChannel(), message, author, member, cmd, args, time);
+                if((System.currentTimeMillis() - start) >= 500){
+                    System.out.println("WARNING: RESPONSE TIME FOR CHAT COMMAND '" + command.command() + "' IS HIGHER THAN 500ms!");)
+                }
+                command.onExecute(e, message.getTextChannel(), message, author, member, cmd, args, start);
             }
         }
     }

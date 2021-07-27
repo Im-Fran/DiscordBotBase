@@ -43,7 +43,6 @@ public class ConsoleInputManager {
     public void initHandler(){
         while(true){
             try {
-                System.out.print("> ");
                 BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
                 // Parse console input to string
                 String line = (reader).readLine();

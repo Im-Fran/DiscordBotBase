@@ -59,6 +59,7 @@ public abstract class DiscordBotBase {
                     .setEventManager(new AnnotatedEventManager())
                     .build()
                     .awaitReady();
+                System.out.println("Logged in as '" + jda.getSelfUser().getName() + "'");
                 mainGuild = jda.getGuildById(config.getString("Guild"));
                 System.out.println("Loading Managers...");
                 ModuleManager manager = new ModuleManager();

@@ -19,8 +19,8 @@ public class PingCommand extends Command {
     }
 
     @Override
-    public void onExecute(MessageReceivedEvent event, TextChannel textChannel, Message message, User author, Member member, String alias, String[] args, long time) {
-        message.reply("Pong!\n It took **" + time + "ms**.").submit();
+    public void onExecute(MessageReceivedEvent event, TextChannel textChannel, Message message, User author, Member member, String alias, String[] args, long startTime) {
+        message.reply("Pong!\n It took **" + (System.currentTimeMillis() - startTime) + "ms**.").queue();
     }
     
 }

@@ -23,6 +23,7 @@ public abstract class Command {
 
     public boolean deleteOnExecution = true;
     public final String identifier;
+    public boolean sendTyping = true;
 
     public Command(){
         this.identifier = "[" + this.command() + " Command]";

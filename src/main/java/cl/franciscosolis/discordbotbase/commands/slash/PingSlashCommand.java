@@ -23,8 +23,8 @@ public class PingSlashCommand extends SlashCommand {
     }
 
     @Override
-    public void onCommand(TextChannel channel, Member member, SlashCommandEvent event, long timeTook) {
-        event.getHook().sendMessage("Pong!\nIt took **" + timeTook + "ms**").queue();
+    public void onCommand(TextChannel channel, Member member, SlashCommandEvent event, long startTime) {
+        event.getHook().sendMessage("Pong!\nIt took **" + (System.currentTimeMillis() - startTime) + "ms**").queue();
     }
     
 }
