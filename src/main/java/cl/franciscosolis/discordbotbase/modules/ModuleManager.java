@@ -8,6 +8,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import cl.franciscosolis.discordbotbase.DiscordBotBase;
+import cl.franciscosolis.discordbotbase.objects.Cooldown;
 import cl.franciscosolis.discordbotbase.utils.ProjectUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -114,7 +115,7 @@ public class ModuleManager {
         }
         if(cmd.deferReply) e.deferReply(cmd.onlyVisibleToUser).queue();
         if((System.currentTimeMillis() - start) >= 500){
-            System.out.println("WARNING: RESPONSE TIME FOR SLASG COMMAND '" + cmd.command() + "' IS HIGHER THAN 500ms!");)
+            System.out.println("WARNING: RESPONSE TIME FOR SLASG COMMAND '" + cmd.command() + "' IS HIGHER THAN 500ms!");
         }
         cmd.onCommand(e.getTextChannel(), e.getMember(), e, start);
     }
